@@ -3,18 +3,15 @@ extern crate rusoto_core;
 extern crate rusoto_dynamodb;
 extern crate rusoto_credential;
 
-use std::default::Default;
-use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 
 use rusoto_core::Region;
-// use rusoto_core::credential::EnvironmentProvider;
-use rusoto_core::credential::ProfileProvider;
+use rusoto_core::credential::{ProfileProvider};
 
-use rusoto_dynamodb::{AttributeValue, BatchGetItemInput, DynamoDb, DynamoDbClient, KeysAndAttributes};
-// use futures::Future;
+use rusoto_s3::{PutObjectRequest, S3Client, S3};
 
 fn main() {
-  // let _ = EnvironmentProvider::default().credentials().wait();
   match ProfileProvider::new() {
     Ok(result) => {
       println!("{:?}", result);
@@ -22,31 +19,25 @@ fn main() {
     Err(err) => panic!("{:?}", err)
   };
 
-  let client = DynamoDbClient::new(Region::ApNortheast1);
-
-  let mut request_items: HashMap<String, KeysAndAttributes> = HashMap::new();
-  let mut attribute_value: HashMap<String, AttributeValue> = HashMap::new();
-  attribute_value.insert(
-    String::from("id"),
-    AttributeValue{
-      s: Some(String::from("test")),
-      ..Default::default()
-    });
-
-  request_items.insert(String::from("test_dynamo"), KeysAndAttributes{
-    keys: vec![ attribute_value ],
-    ..Default::default()
-  });
-
-  match client.batch_get_item(BatchGetItemInput {  
-    request_items,
-    return_consumed_capacity: None
-  }).sync() {
-    Ok(output) => {
-      println!("{:?}", output);
-    },
-    Err(err) => {
-      panic!("{:?}", err);
-    }
+  let region = Region::Custom {
+      name: "ap-northeast-1".to_owned(),
+      endpoint: "s3.ap-northeast-1.amazonaws.com".to_owned(),
   };
+  let client = S3Client::new(region.clone());
+
+    let mut f = File::open("README.md").unwrap();
+    let mut contents: Vec<u8> = Vec::new();
+    match f.read_to_end(&mut contents) {
+        Err(why) => panic!("Error opening file to send to S3: {}", why),
+        Ok(_) => {
+            let req = PutObjectRequest {
+                bucket: "rchaser53-testbacket".to_owned(),
+                key: "nyan".to_owned(),
+                body: Some(contents.into()),
+                ..Default::default()
+            };
+            let result = client.put_object(req).sync().expect("Couldn't PUT object");
+            println!("{:#?}", result);
+        }
+    }
 }
