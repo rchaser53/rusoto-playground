@@ -1,0 +1,5 @@
+[book]
+authors = ["rchaser53"]
+multilingual = false
+src = "src"
+title = "test_book"
