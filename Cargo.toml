@@ -1,14 +1,16 @@
 [package]
-name = "rusoto-playground"
-version = "0.1.0"
 authors = ["rchaser53 <tayoshizawa29@gmail.com>"]
 edition = "2018"
+name = "rusoto-playground"
+version = "0.1.0"
 
 [dependencies]
 futures = "0.1.25"
 rusoto_core = "0.36.0"
+rusoto_credential = "0.15.0"
 rusoto_dynamodb = "0.36.0"
 rusoto_s3 = "0.36.0"
 rusoto_sqs = "0.36.0"
 rusoto_sts = "0.36.0"
-rusoto_credential = "0.15.0"
+walkdir = "2.2.7"
+zip = "0.5.0"
